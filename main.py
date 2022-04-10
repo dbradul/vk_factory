@@ -72,7 +72,8 @@ def process_file(client, filename):
                 if login not in logins:
                     raise RuntimeError(f'Account {login} is not found among those: {logins}')
                 else:
-                    client.auth_as(login)
+                    # client.auth_as(login)
+                    client.direct_auth(login, app_id=os.getenv('VK_APP_ID'), client_secret=os.getenv('VK_APP_SECRET'))
                 prev_login = login
 
             logger.info(f'Starting {login} for audience {sheetname}...')

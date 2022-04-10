@@ -78,6 +78,20 @@ class VkClientProxy:
         self.set_proxy_obj(self._session.get_api())
         self.config = Config(**config.data)
 
+    def direct_auth(self, login, **kw_args):
+        username, password = [(acc, passw) for acc, passw in self._accounts if acc == login][0]
+        # username, password = self.next_account()
+        app_id, client_secret = kw_args.get('app_id'), kw_args.get('client_secret')
+        self._session = vk_api.VkApi(username, password, **kw_args)
+        AUTH_URL = f'https://oauth.vk.com/token?grant_type=password&client_id={app_id}&client_secret={client_secret}&'
+        resp = requests.get(AUTH_URL + f'username={username}&password={password}')
+        if resp.status_code != 200:
+            raise RuntimeError(f'Not Authorized {resp.status_code}, {resp.text}')
+        self._session.token = resp.json()
+        # self._session.auth(reauth=True, token_only=True)
+        self.set_proxy_obj(self._session.get_api())
+        self.config = Config(**config.data)
+
     def get_params(self, extra_params=None):
         params = {'count': self.config.search_count}
         if extra_params:

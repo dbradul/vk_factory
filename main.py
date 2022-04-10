@@ -17,20 +17,33 @@ MIN_WAIT = int(os.getenv('MIN_WAIT'))
 MAX_WAIT = int(os.getenv('MAX_WAIT'))
 
 
+def repost(client, post):
+    wall_post_id = post.split('/')[-1]
+    resp = client._obj._vk.method('wall.repost', {'object': wall_post_id})
+    logger.info(f'Reposted wall post with id={wall_post_id} with result {resp}')
+
+
+def add_friend(client, id, invite_msg):
+    resp = client._obj._vk.method('friends.add', {'user_id': int(id), 'text': invite_msg})
+    logger.info(f'Added friend with id={id} with result {resp}')
+
+
 def process_sheet(client, sheet, invite_msg, num_friends):
     row_count = min(num_friends, sheet.max_row)
     success_rows = 0
 
+    headers = {
+        f'{letter}': sheet[f'{letter}1'].value
+        for letter in 'ABCDEF'
+    }
+
     for idx, r in enumerate(range(2, row_count + 1), 1):
         try:
-            id = sheet[f'D{str(r)}'].value
-
-            # vk_method = VkApiMethod(client._obj)
-            resp = client._obj._vk.method('friends.add', {'user_id': int(id), 'text': invite_msg})
-            # resp = client.friends.add(int(id))
-            # resp = vk_method.friends.add(int(id))
-
-            logger.info(f'Added friend with id={id} with result {resp}')
+            value = sheet[f'D{str(r)}'].value
+            if headers['D'].lower() == 'id':
+                add_friend(client, int(value), invite_msg)
+            elif headers['D'].lower() == 'urltorepost':
+                repost(client, value)
 
             success_rows += 1
 

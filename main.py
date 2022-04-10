@@ -59,7 +59,7 @@ def process_file(client, filename):
     prev_login = None
     for r in range(2, row_count + 1):
         try:
-            login = ws[f'B{str(r)}'].value
+            login = str(ws[f'B{str(r)}'].value)
             sheetname = ws[f'C{str(r)}'].value
             invite_msg = ws[f'D{str(r)}'].value
             num_friends = ws[f'E{str(r)}'].value
@@ -68,8 +68,9 @@ def process_file(client, filename):
             if not sheet:
                 raise RuntimeError(f'Sheet with name {sheetname} is not found')
             if not prev_login or prev_login != login:
-                if login not in [account[0] for account in client._accounts]:
-                    raise RuntimeError(f'Account with login {sheetname} is not found')
+                logins = [account[0] for account in client._accounts]
+                if login not in logins:
+                    raise RuntimeError(f'Account {login} is not found among those: {logins}')
                 else:
                     client.auth_as(login)
                 prev_login = login
